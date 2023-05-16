@@ -76,16 +76,20 @@ class MyPromise {
       if (this.status === PENDING) {
         this.status = FULFILLED;
         this.value = value;
-        //清空当前的成功回调函数
-        this.onFulfilledCallbacks.forEach((fn) => fn());
+        while (this.onFulfilledCallbacks.length) {
+          //清空当前的成功回调函数
+          this.onFulfilledCallbacks.shift()();
+        }
       }
     };
     const reject = (reason) => {
       if (this.status === PENDING) {
         this.status = REJECTED;
         this.reason = reason;
-        //清空当前的失败回调函数
-        this.onRejectedCallbacks.forEach((fn) => fn());
+        while (this.onRejectedCallbacks.length) {
+          //清空当前的失败回调函数
+          this.onRejectedCallbacks.shift()();
+        }
       }
     };
     //使用try、catch来捕获执行器中的错误，并且在执行错误的时候将Promise的状态变为失败
@@ -194,7 +198,7 @@ class MyPromise {
           }
         });
       } else if (this.status === PENDING) {
-        //保存回调函数
+        //如果是同一实例多次调用then方法则需要保存回调函数，等将来按顺序调用
         this.onFulfilledCallbacks.push(() => {
           queueMicrotask(() => {
             try {
